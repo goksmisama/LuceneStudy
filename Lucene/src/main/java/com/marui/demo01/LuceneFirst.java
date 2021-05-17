@@ -4,8 +4,11 @@ import org.apache.commons.io.FileUtils;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.TextField;
+import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.index.Term;
+import org.apache.lucene.search.*;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.junit.Test;
@@ -39,10 +42,10 @@ public class LuceneFirst {
             //读取文件大小
             long fileSize = FileUtils.sizeOf(file);
             //创建field：参数1 域的名称     参数2 域的内容     参数3 是否存储
-            Field fieldName = new TextField("fieldName",fileName, Field.Store.YES);
-            Field fieldPath = new TextField("fieldPath",filePath,Field.Store.YES);
-            Field fieldContent = new TextField("fieldContent",fileContent,Field.Store.YES);
-            Field fieldSize = new TextField("fieldSize",fileSize+"",Field.Store.YES);
+            Field fieldName = new TextField("fileName",fileName, Field.Store.YES);
+            Field fieldPath = new TextField("filePath",filePath,Field.Store.YES);
+            Field fieldContent = new TextField("fileContent",fileContent,Field.Store.YES);
+            Field fieldSize = new TextField("fileSize",fileSize+"",Field.Store.YES);
             //创建文档对象
             Document document = new Document();
             //4.向文档对象中添加域
@@ -55,5 +58,46 @@ public class LuceneFirst {
         }
         //6.关闭indexWriter对象
         indexWriter.close();
+    }
+
+    @Test
+    public void searchIndex() throws IOException {
+        //1. 创建一个Directory对象，指定索引库的位置
+        Directory directory = FSDirectory.open(new File("C:\\Users\\98460\\Desktop\\Lucene\\index").toPath());
+        //2. 创建一个indexReader对象
+        DirectoryReader indexReader = DirectoryReader.open(directory);
+        //3. 创建一个indexSerch对象，构造方法中需要indexReader对象
+        IndexSearcher indexSearcher = new IndexSearcher(indexReader);
+        //4. 创建一个Query对象，通过TermQuery实现类创建
+        Query query = new TermQuery(new Term("fileContent","were"));
+        //5. 执行查询，得到TopDocs对象
+        TopDocs topDocs = indexSearcher.search(query, 10);
+        //6. 取出查询的总记录
+        ScoreDoc[] scoreDocs = topDocs.scoreDocs;
+        //7. 取文档列表
+        for (ScoreDoc scoreDoc : scoreDocs) {
+            //取文档id
+            int docId = scoreDoc.doc;
+            //根据id获取文档对象
+            Document document = indexSearcher.doc(docId);
+            //获取文件名称
+            System.out.println("=======================文件名称========================");
+            String fileName = document.get("fileName");
+            System.out.println(fileName);
+            //获取文件路径
+            System.out.println("=======================文件路径========================");
+            String filePath = document.get("fileContent");
+            System.out.println(filePath);
+            //获取文件内容
+            System.out.println("=======================文件内容========================");
+            String fileContent = document.get("fileContent");
+            System.out.println(fileContent);
+            //获取文件大小
+            System.out.println("=======================文件大小========================");
+            String fileSize = document.get("fileSize");
+            System.out.println(fileSize);
+        }
+        //8. 关闭indexReader对象
+        indexReader.close();
     }
 }
