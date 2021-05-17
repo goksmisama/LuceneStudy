@@ -1,17 +1,19 @@
 package com.marui.demo01;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.TextField;
-import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.index.IndexWriter;
-import org.apache.lucene.index.IndexWriterConfig;
-import org.apache.lucene.index.Term;
+import org.apache.lucene.index.*;
 import org.apache.lucene.search.*;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.junit.Test;
+import org.wltea.analyzer.lucene.IKAnalyzer;
 
 import java.io.File;
 import java.io.IOException;
@@ -65,7 +67,7 @@ public class LuceneFirst {
         //1. 创建一个Directory对象，指定索引库的位置
         Directory directory = FSDirectory.open(new File("C:\\Users\\98460\\Desktop\\Lucene\\index").toPath());
         //2. 创建一个indexReader对象
-        DirectoryReader indexReader = DirectoryReader.open(directory);
+        IndexReader indexReader = DirectoryReader.open(directory);
         //3. 创建一个indexSerch对象，构造方法中需要indexReader对象
         IndexSearcher indexSearcher = new IndexSearcher(indexReader);
         //4. 创建一个Query对象，通过TermQuery实现类创建
@@ -81,23 +83,55 @@ public class LuceneFirst {
             //根据id获取文档对象
             Document document = indexSearcher.doc(docId);
             //获取文件名称
-            System.out.println("=======================文件名称========================");
             String fileName = document.get("fileName");
             System.out.println(fileName);
             //获取文件路径
-            System.out.println("=======================文件路径========================");
             String filePath = document.get("fileContent");
             System.out.println(filePath);
             //获取文件内容
-            System.out.println("=======================文件内容========================");
             String fileContent = document.get("fileContent");
             System.out.println(fileContent);
             //获取文件大小
-            System.out.println("=======================文件大小========================");
             String fileSize = document.get("fileSize");
             System.out.println(fileSize);
         }
         //8. 关闭indexReader对象
         indexReader.close();
+    }
+
+    @Test
+    public void testTokenStream() throws IOException {
+        //1. 使用Analyzer的StandardAnalyzer实现了创建对象
+        Analyzer analyzer = new StandardAnalyzer();
+        //2. 使用分析器对象的tokenStream()方法获得TokenStream对象
+        TokenStream tokenStream = analyzer.tokenStream(null, "我爱中国");
+        //3. 想TokenStream对象设置一个引用作为指针
+        CharTermAttribute charTermAttribute = tokenStream.addAttribute(CharTermAttribute.class);
+        //4. 调用TokenStream对象的reset方法，如果不调用会抛错
+        tokenStream.reset();
+        //5. 使用while循环遍历TokenStream对象
+        while (tokenStream.incrementToken()) {
+            System.out.println(charTermAttribute);
+        }
+        //6. 释放资源，关闭TokenStream对象
+        tokenStream.close();
+    }
+
+    @Test
+    public void testIKAnalyzer() throws IOException {
+        //1. 使用Analyzer的StandardAnalyzer实现了创建对象
+        Analyzer analyzer = new IKAnalyzer();
+        //2. 使用分析器对象的tokenStream()方法获得TokenStream对象
+        TokenStream tokenStream = analyzer.tokenStream(null, "耗子尾汁");
+        //3. 想TokenStream对象设置一个引用作为指针
+        CharTermAttribute charTermAttribute = tokenStream.addAttribute(CharTermAttribute.class);
+        //4. 调用TokenStream对象的reset方法，如果不调用会抛错
+        tokenStream.reset();
+        //5. 使用while循环遍历TokenStream对象
+        while (tokenStream.incrementToken()) {
+            System.out.println(charTermAttribute);
+        }
+        //6. 释放资源，关闭TokenStream对象
+        tokenStream.close();
     }
 }

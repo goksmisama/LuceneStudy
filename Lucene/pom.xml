@@ -15,11 +15,6 @@
             <version>2.6</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.lucene</groupId>
-            <artifactId>lucene-core</artifactId>
-            <version>7.4.0</version>
-        </dependency>
-        <dependency>
             <groupId>com.github.magese</groupId>
             <artifactId>ik-analyzer</artifactId>
             <version>7.7.0</version>
